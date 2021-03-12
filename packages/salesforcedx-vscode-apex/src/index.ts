@@ -18,13 +18,13 @@ import {
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
-  forceApexTestRun
+  forceApexTestRun,
+  forceApexTestSuiteAdd,
+  forceApexTestSuiteCreate,
+  forceApexTestSuiteRun
 } from './commands';
 import { forceApexExecute } from './commands/forceApexExecute';
-import {
-  APEX_EXTENSION_NAME,
-  LSP_ERR
-} from './constants';
+import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
 import { workspaceContext } from './context';
 import {
   ClientStatus,
@@ -182,6 +182,18 @@ function registerCommands(
     'sfdx.force.apex.test.method.run',
     forceApexTestMethodRunCodeAction
   );
+  const forceApexTestSuiteCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.suite.create',
+    forceApexTestSuiteCreate
+  );
+  const forceApexTestSuiteRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.suite.run',
+    forceApexTestSuiteRun
+  );
+  const forceApexTestSuiteAddCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.suite.add',
+    forceApexTestSuiteAdd
+  );
   const forceApexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.run',
     forceApexTestRun
@@ -209,7 +221,10 @@ function registerCommands(
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceApexTestRunCmd,
-    forceApexToggleColorizerCmd
+    forceApexToggleColorizerCmd,
+    forceApexTestSuiteCreateCmd,
+    forceApexTestSuiteRunCmd,
+    forceApexTestSuiteAddCmd
   );
 }
 
