@@ -20,7 +20,7 @@ import {
   WorkspaceConfiguration,
   commands
 } from 'vscode';
-import { clearDiagnostics } from '../../../src/client/client';
+import { clearDiagnostics } from '../../../src/lspClient/client';
 import { stubMockConnection } from '../testUtilities';
 import {
   SOQL_CONFIGURATION_NAME,
