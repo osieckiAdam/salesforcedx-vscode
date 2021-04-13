@@ -10,13 +10,17 @@ import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletion
 
 import { Middleware } from 'vscode-languageclient';
 import { SoqlItemContext } from '@salesforce/soql-language-server';
+import { nls } from '../messages';
+import { channelService } from '../sfdx';
 import { telemetryService } from '../telemetry';
 import {
   FileSystemOrgDataSource,
   JsforceOrgDataSource,
   MinFieldMeta,
+  MinSObjectMeta,
   OrgDataSource
 } from './orgMetadata';
+import { Org } from '@salesforce/core';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -56,7 +60,8 @@ async function filterByContext(
       item?.data?.soqlContext?.sobjectName &&
       item?.data?.soqlContext?.fieldName
     ) {
-      const objMetadata = await dataSource.retrieveSObject(
+      const objMetadata = await safeRetrieveSObject(
+        dataSource,
         item.data.soqlContext.sobjectName
       );
       if (objMetadata) {
@@ -137,7 +142,8 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await dataSource.retrieveSObject(
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
       soqlContext.sobjectName
     );
     if (!objMetadata) {
@@ -157,7 +163,8 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await dataSource.retrieveSObject(
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
       soqlContext.sobjectName
     );
     if (!objMetadata) {
@@ -190,7 +197,8 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const parentObject = await dataSource.retrieveSObject(
+    const parentObject = await safeRetrieveSObject(
+      dataSource,
       soqlContext.sobjectName
     );
     if (!parentObject) {
@@ -205,7 +213,8 @@ const expandFunctions: {
       return [];
     }
 
-    const objMetadata = await dataSource.retrieveSObject(
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
       relationship?.childSObject
     );
     if (!objMetadata) {
@@ -225,7 +234,8 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await dataSource.retrieveSObject(
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
       soqlContext.sobjectName
     );
     if (!objMetadata || !soqlContext.fieldName) {
@@ -259,34 +269,19 @@ const expandFunctions: {
   }
 };
 
-// async function safeRetrieveSObject(
-//   sobjectName?: string
-// ): Promise<DescribeSObjectResult | undefined> {
-//   try {
-//     if (!sobjectName) {
-//       telemetryService.sendException(
-//         'SOQLanguageServerException',
-//         'Missing `sobjectName` from SOQL completion context!'
-//       );
-//       return Promise.resolve(undefined);
-//     }
-//     return await retrieveSObject(sobjectName);
-//   } catch (metadataError) {
-//     const message = nls.localize('error_sobject_metadata_request', sobjectName);
-//     channelService.appendLine(message);
-//     return undefined;
-//   }
-// }
-
-// async function safeRetrieveSObjectsList(): Promise<string[]> {
-//   try {
-//     return await retrieveSObjects();
-//   } catch (metadataError) {
-//     const message = nls.localize('error_sobjects_request');
-//     channelService.appendLine(message);
-//     return [];
-//   }
-// }
+async function safeRetrieveSObject(
+  dataSource: OrgDataSource,
+  sobjectName?: string
+): Promise<MinSObjectMeta | undefined> {
+  if (!sobjectName) {
+    telemetryService.sendException(
+      'SOQLanguageServerException',
+      'Missing `sobjectName` from SOQL completion context!'
+    );
+    return Promise.resolve(undefined);
+  }
+  return await dataSource.retrieveSObject(sobjectName);
+}
 
 function objectFieldMatchesSOQLContext(
   field: MinFieldMeta,

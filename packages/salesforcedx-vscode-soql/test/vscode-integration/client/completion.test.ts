@@ -422,7 +422,19 @@ describe('Should do completion', async () => {
   ]);
 });
 
-describe('Should not do completion on connection errors', async () => {
+describe('Should not do completion on metadata errors', async () => {
+  const workspaceDir = path.normalize(
+    __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+  );
+  const soqlMetadataDir = workspaceDir + '/tools/soqlMetadata';
+
+  before(() => {
+    if (fsExtra.existsSync(soqlMetadataDir)) {
+      console.log('Removing existing ' + soqlMetadataDir);
+      fsExtra.removeSync(soqlMetadataDir);
+    }
+  });
+
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(
@@ -444,7 +456,14 @@ describe('Should not do completion on connection errors', async () => {
       'the objects in the org. Make sure that you’re connected to an authorized org ' +
       'and have permissions to view the objects in the org.'
   });
-
+  testCompletion('SELECT Id FROM |', [], {
+    embeddedSoql: true,
+    expectChannelMsg:
+      'ERROR: We can’t retrieve list of objects. ' +
+      'Expected JSON files in directory: ' +
+      soqlMetadataDir +
+      '.'
+  });
   testCompletion(
     'SELECT | FROM Account',
     [
@@ -461,6 +480,28 @@ describe('Should not do completion on connection errors', async () => {
       expectChannelMsg:
         'ERROR: We can’t retrieve the fields for Account. Make sure that you’re connected ' +
         'to an authorized org and have permissions to view the object and fields.'
+    }
+  );
+
+  testCompletion(
+    'SELECT | FROM Account',
+    [
+      ...aggregateFunctionItems,
+      {
+        label: '(SELECT ... FROM ...)',
+        kind: CompletionItemKind.Snippet,
+        insertText: '(SELECT $2 FROM $1)'
+      },
+      { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+      { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
+    ],
+    {
+      embeddedSoql: true,
+      expectChannelMsg:
+        'ERROR: We can’t retrieve the fields for Account. ' +
+        'Expected metadata file at: ' +
+        soqlMetadataDir +
+        '/Account.json.'
     }
   );
 });

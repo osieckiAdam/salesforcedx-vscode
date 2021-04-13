@@ -7,22 +7,15 @@
 
 import { DescribeSObjectResult, Field } from 'jsforce';
 
-import {
-  getRootWorkspaceSfdxPath,
-  hasRootWorkspace,
-  TelemetryService
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { JsonMap } from '@salesforce/ts-types';
-import * as vscode from 'vscode';
+import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
 import { nls } from '../messages';
 import * as fs from 'fs';
-
 import * as path from 'path';
 
 export interface OrgDataSource {
   retrieveSObjectsList(): Promise<string[]>;
-  retrieveSObject(sobjectName?: string): Promise<MinSObjectMeta | undefined>;
+  retrieveSObject(sobjectName: string): Promise<MinSObjectMeta | undefined>;
 }
 
 export type MinFieldMeta = Pick<
@@ -49,51 +42,57 @@ export type MinSObjectMeta = Pick<
 };
 
 export class FileSystemOrgDataSource implements OrgDataSource {
-  private getLocalDatapath() {
-    if (!hasRootWorkspace()) {
-      throw new Error('Unable to load workspace rootFolder !'); // TODO: nls localize
+  private getLocalDatapath(): string | undefined {
+    const sfdxPath = getRootWorkspaceSfdxPath();
+    if (!sfdxPath) {
+      const message = nls.localize('error_no_workspace_folder');
+      channelService.appendLine(message);
+      return undefined;
     }
-
-    return path.join(
-      // TODO: extract these paths
-      getRootWorkspaceSfdxPath(),
-      'tools',
-      'soqlMetadata'
-    );
+    return path.join(sfdxPath, 'tools', 'soqlMetadata');
   }
 
   public async retrieveSObjectsList(): Promise<string[]> {
     const soqlMetadataPath = this.getLocalDatapath();
+    if (!soqlMetadataPath) {
+      return [];
+    }
 
     try {
       const files = await fs.promises.readdir(soqlMetadataPath);
       return files
         .filter(fileName => fileName.endsWith('.json'))
         .map(fileName => fileName.replace(/.json$/, ''));
-    } catch (err) {
-      // TODO: localize ?
-      const message = 'Unable to read metadata for SObjects';
+    } catch (e) {
+      const message = nls.localize(
+        'error_sobjects_fs_request',
+        soqlMetadataPath
+      );
       channelService.appendLine(message);
-      throw new Error(message);
+      return [];
     }
   }
 
   public async retrieveSObject(
-    sobjectName?: string
+    sobjectName: string
   ): Promise<MinSObjectMeta | undefined> {
     const soqlMetadataPath = this.getLocalDatapath();
-
+    if (!soqlMetadataPath) {
+      return undefined;
+    }
+    const filePath = path.join(soqlMetadataPath, sobjectName + '.json');
     try {
-      const file = await fs.promises.readFile(
-        path.join(soqlMetadataPath, sobjectName + '.json')
-      );
+      const file = await fs.promises.readFile(filePath);
       // TODO: validate content against a schema
       return JSON.parse(file.toString());
-    } catch (err) {
-      // TODO: extract message ?
-      const message = 'Unable to read metadata for SObject name ' + sobjectName;
+    } catch (e) {
+      const message = nls.localize(
+        'error_sobject_metadata_fs_request',
+        sobjectName,
+        filePath
+      );
       channelService.appendLine(message);
-      throw new Error(message);
+      return undefined;
     }
   }
 }
@@ -101,7 +100,6 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 export class JsforceOrgDataSource implements OrgDataSource {
   async retrieveSObjectsList(): Promise<string[]> {
     try {
-      // generateLocalSobjectJSON();
       return await retrieveSObjects();
     } catch (metadataError) {
       const message = nls.localize('error_sobjects_request');
@@ -111,16 +109,9 @@ export class JsforceOrgDataSource implements OrgDataSource {
   }
 
   async retrieveSObject(
-    sobjectName?: string
+    sobjectName: string
   ): Promise<MinSObjectMeta | undefined> {
     try {
-      if (!sobjectName) {
-        TelemetryService.getInstance().sendException(
-          'SOQLanguageServerException',
-          'Missing `sobjectName` from SOQL completion context!'
-        );
-        return Promise.resolve(undefined);
-      }
       return toMinimalSObject(await retrieveSObject(sobjectName));
     } catch (metadataError) {
       const message = nls.localize(
