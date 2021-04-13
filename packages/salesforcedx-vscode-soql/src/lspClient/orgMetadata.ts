@@ -136,10 +136,9 @@ export class JsforceOrgDataSource implements OrgDataSource {
 function toMinimalSObject(
   describeSObject: DescribeSObjectResult
 ): MinSObjectMeta {
-  describeSObject.childRelationships;
   return {
     fields: describeSObject.fields.map(toMinimalSObjectField),
-    childRelationships: describeSObject.childRelationships.filter(
+    childRelationships: (describeSObject.childRelationships || []).filter(
       r => r.relationshipName !== null
     ),
     ...pick(describeSObject, 'label', 'custom', 'name', 'queryable')

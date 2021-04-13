@@ -87,6 +87,13 @@ describe('SOQL language client', () => {
       'testSemanticErrors_remoteRunDefault',
       'SELECT Ids FROM Account'
     );
+    stubSOQLExtensionConfiguration(
+      sandbox,
+      {
+        // [SOQL_VALIDATION_CONFIG]: undefined
+      },
+      soqlExtension
+    );
 
     const querySpy = sandbox.stub(mockConnection, 'query');
     textEditor = await window.showTextDocument(soqlFileUri);
