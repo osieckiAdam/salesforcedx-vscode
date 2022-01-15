@@ -33,7 +33,7 @@ To create developing against non-source-tracked orgs:
 
 ![Create project](./images/create-project-with-manifest.png)
 
-1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
+1. In the code editor's status bar, click Org Picker to open the Command Palette. You can select from the list of authorized orgs, or you can choose to authorize a new org.
 
 If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
 
@@ -55,7 +55,7 @@ Org Development model doesn’t automatically track changes to your org, so be s
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
-You can retrieve source for a manifest, a source file, a directory, or a folder:
+You can retrieve source for a manifest, source files, directories, or folders:
 
 - Manifest
   - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Retrieve Source in Manifest from Org**.
@@ -95,13 +95,13 @@ When you deploy the code changes, the local version of the source files overwrit
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
-You can deploy source of a manifest, a source file, a directory, or a folder:
+You can deploy source of a manifest, source files, directories, or folders:
 
 - Manifest
   - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Deploy Source in Manifest in Org**.
   - With a manifest file open in the editor, open the Command Palette and run **SFDX: Deploy Source in Manifest in Org**.
 - Source File or Directory
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
 - With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
 
@@ -125,15 +125,17 @@ Org Browser displays the available metadata types and their corresponding compon
 
 ### Retrieve Source
 
-You can retrieve a component or multiple components to your local project from the default org. To do so, click the retrieve button next to the component or the metadata type.
+You can retrieve a component or multiple components to your local project from the default org:
+- In Org Browser, click the retrieve button next to the component or the metadata type.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Retrieve Source from Org**.
 
 You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](./en/user-guide/source-diff).
 
 ### Deploy Source
 
-After you have made the code changes you can deploy source for a source file, a directory, or a folder.
+After you have made the code changes you can deploy the source files or directories.
 
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select  **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
 - With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
 
@@ -151,10 +153,10 @@ To start developing with this model:
    If you want to work on an existing project, choose **File** > **Open** and navigate to the project directory. Before you open an existing project in VS Code, make sure that your project has a `sfdx-project.json` file and that metadata is in source format.
    - For information on the project structure, see Project Setup (https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
    - You can work with source-tracked orgs only if your metadata is in source format. See Source Format (./en/user-guide/source-format).
-1. In the Side Bar of the code editor, click Org Picker and this opens the Command Palette.
+1. In the code editor's status bar, click Org Picker to open the Command Palette.
 1. Run **SFDX: Authorize an Org**. If you don’t have a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.
 1. Click Org Picker and run **SFDX: Create a Default Scratch Org** to create and set a scratch org as your default org for development.
-1. Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon ({% octicon browser %}) in the Side Bar to open the default org you are working against.
+2. Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon ({% octicon browser %}) in the status bar to open the default org you are working against.
    To change the default org you’re developing against, click the Org Picker and select a different org. Or, open the Command Palette and run **SFDX: Authorize an Org** or **SFDX: Create a Default Scratch Org**.
 
 ### Push and Pull Source

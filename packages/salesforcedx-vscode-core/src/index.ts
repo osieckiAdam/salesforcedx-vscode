@@ -12,8 +12,10 @@ import {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
+  forceAuthAccessToken,
   forceAuthDevHub,
   forceAuthLogoutAll,
+  forceAuthLogoutDefault,
   forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
@@ -46,14 +48,14 @@ import {
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
+  forceSourceDeploySourcePaths,
   forceSourceDiff,
+  forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePath,
+  forceSourceRetrieveSourcePaths,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -77,8 +79,15 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands/util';
-import { registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
+import {
+  PersistentStorageService,
+  registerConflictView,
+  setupConflictView
+} from './conflict';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_CORE_CONFIGURATION_NAME
+} from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -97,6 +106,10 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
+  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.accessToken',
+    forceAuthAccessToken
+  );
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
@@ -108,6 +121,10 @@ function registerCommands(
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
     forceAuthLogoutAll
+  );
+  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.logout.default',
+    forceAuthLogoutDefault
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -127,7 +144,7 @@ function registerCommands(
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
@@ -135,11 +152,11 @@ function registerCommands(
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
-    forceSourceDeployMultipleSourcePaths
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.source.path',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -161,11 +178,11 @@ function registerCommands(
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.source.file',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
@@ -322,6 +339,11 @@ function registerCommands(
     forceSourceDiff
   );
 
+  const forceDiffFolder = vscode.commands.registerCommand(
+    'sfdx.force.folder.diff',
+    forceSourceFolderDiff
+  );
+
   const forceFunctionCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.function.create',
     forceFunctionCreate
@@ -353,9 +375,11 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceAuthAccessTokenCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
+    forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
@@ -541,16 +565,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  // Set functions enabled context
-  const functionsEnabled = sfdxCoreSettings.getFunctionsEnabled();
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:functions_enabled',
-    functionsEnabled
-  );
-  if (functionsEnabled) {
-    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
-  }
+  FunctionService.instance.handleDidStartTerminateDebugSessions(context);
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -585,6 +600,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
     await setupOrgBrowser(context);
     await setupConflictView(context);
+
+    PersistentStorageService.initialize(context);
 
     // Register filewatcher for push or deploy on save
 
@@ -631,8 +648,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
-  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
   if (sobjectRefreshStartup) {
     initSObjectDefinitions(

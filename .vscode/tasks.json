@@ -85,6 +85,8 @@
       "type": "shell",
       "args": [
         "${input:verboseOutput}",
+        "-t",
+        "${input:date}",
         "-i",
         "${input:packagesToIgnore}",
         "-o",
@@ -107,6 +109,12 @@
       "command": "./scripts/pre-publish-workflow.sh",
       "type": "shell",
       "args": ["${input:circleCiId}", "${input:releaseBranch}"]
+    },
+    {
+      "label": "Build Language Server Jar (Jorje)",
+      "command": "./scripts/build-jorje.js",
+      "type": "shell",
+      "args": ["${input:needSigning}"]
     },
     {
       "label": "Publish Extensions",
@@ -132,6 +140,18 @@
       "id": "circleCiId",
       "type": "promptString",
       "description": "CircleCi Token"
+    },
+    {
+      "id": "date",
+      "type": "promptString",
+      "description": "Date of release (ex April 3, 2021). Leave blank to use today's date."
+    },
+    {
+      "id": "needSigning",
+      "type": "pickString",
+      "description": "Are you publishing Jorje changes? (Need Signed Jar)",
+      "options": ["false", "true"],
+      "default": "false"
     },
     {
       "id": "packagesToIgnore",

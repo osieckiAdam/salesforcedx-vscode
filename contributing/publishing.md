@@ -26,7 +26,7 @@ For more information about publishing take a look at:
 
 ## Creating a release branch
 
-The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
+The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Tuesdays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
 
 To create a release branch manually:
 
@@ -60,6 +60,8 @@ After the change log has been approved and merged into your release branch, it's
 
 To run the merge process:
 
+1. Switch local branch to develop
+1. Perform a git pull
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
 1. Select `Launch Pre-Publish Steps`.

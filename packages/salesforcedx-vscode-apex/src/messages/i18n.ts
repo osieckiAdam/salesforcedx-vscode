@@ -65,6 +65,8 @@ export const messages = {
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
+  java_runtime_local_text:
+    'Local Java runtime (%s) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](%s).',
   source_java_home_env_var_text: 'The JAVA_HOME environment variable',
   source_jdk_home_env_var_text: 'The JDK_HOME environment variable',
   source_java_home_setting_text:
@@ -72,5 +74,6 @@ export const messages = {
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
-    'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/) or [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) to run the extensions. For more information, see [Set Your Java Version](%s).'
+    'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/) or [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) to run the extensions. For more information, see [Set Your Java Version](%s).',
+  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite'
 };
